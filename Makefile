@@ -1,4 +1,4 @@
-.PHONY: clean
+.PHONY: all clean
 
 vpath %.hpp ./include
 vpath %.cpp ./src $(sort $(dir $(wildcard ./src/*/)))
