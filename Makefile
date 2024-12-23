@@ -3,14 +3,14 @@
 vpath %.hpp ./include
 vpath %.cpp ./src $(sort $(dir $(wildcard ./src/*/)))
 
-targ= cpu load fetch decode_execute
+targ= cpu fde
 
 obj= $(addsuffix .o, $(targ))
 
 inc= ./include
 bin= ./bin
 
-CXXFLAGS= -I $(inc)
+CXXFLAGS= -I $(inc) -g
 CXX?= g++
 
 all: avrsim
@@ -21,7 +21,7 @@ all: avrsim
 	$(CXX) $(CXXFLAGS) -c $< -o $(bin)/$@ 
 
 avrsim: $(obj)
-	g++ -I $(inc) src/runner.cpp $(addprefix $(bin)/, $(obj)) -o bin/avrsim
+	g++ -I $(inc) src/runner.cpp -g $(addprefix $(bin)/, $(obj)) -o bin/avrsim
 
 clean:
 	-rm $(addprefix $(bin)/, $(obj))
