@@ -8,8 +8,16 @@ constexpr uint16_t NUM_PINS= 4;
 #define _2_BYTE 0x10
 #define _3_BYTE 0x18
 
+constexpr uint8_t BIT7=128;
+constexpr uint8_t BIT6=64;
+constexpr uint8_t BIT5=32;
+constexpr uint8_t BIT4=16;
+constexpr uint8_t BIT3=8;
+constexpr uint8_t BIT2=4;
+constexpr uint8_t BIT1=2;
+constexpr uint8_t BIT0=1;
 
-const char* INST[]={
+static const char* INST[]={
 // Arithmetic (0-27):
     "ADD",  // Rd, Rr Add two Registers Rd ← Rd + Rr Z,C,N,V,H 1
     "ADC",  // Rd, Rr Add with Carry two Registers Rd ← Rd + Rr + C Z,C,N,V,H 1
@@ -83,32 +91,12 @@ const char* INST[]={
     "MOVW", // Rd, Rr Copy Register Word Rd+1:Rd ← Rr+1:Rr None 1
     "LDI", // Rd, K Load Immediate Rd ← K None 1
     "LD", // Rd, X Load Indirect Rd ← (X) None 2
-    "LD", // Rd, X+ Load Indirect and Post-Inc. Rd ← (X), X ← X + 1 None 2
-    "LD", // Rd, - X Load Indirect and Pre-Dec. X ← X - 1, Rd ← (X) None 2
-    "LD", // Rd, Y Load Indirect Rd ← (Y) None 2
-    "LD", // Rd, Y+ Load Indirect and Post-Inc. Rd ← (Y), Y ← Y + 1 None 2
-    "LD", // Rd, - Y Load Indirect and Pre-Dec. Y ← Y - 1, Rd ← (Y) None 2
     "LDD", // Rd,Y+q Load Indirect with Displacement Rd ← (Y + q) None 2
-    "LD", // Rd, Z Load Indirect Rd ← (Z) None 2
-    "LD", // Rd, Z+ Load Indirect and Post-Inc. Rd ← (Z), Z ← Z+1 None 2
-    "LD", // Rd, -Z Load Indirect and Pre-Dec. Z ← Z - 1, Rd ← (Z) None 2
-    "LDD", // Rd, Z+q Load Indirect with Displacement Rd ← (Z + q) None 2
     "LDS", // Rd, k Load Direct from SRAM Rd ← (k) None 2
     "ST", // X, Rr Store Indirect (X) ← Rr None 2
-    "ST", // X+, Rr Store Indirect and Post-Inc. (X) ← Rr, X ← X + 1 None 2
-    "ST", // - X, Rr Store Indirect and Pre-Dec. X ← X - 1, (X) ← Rr None 2
-    "ST", // Y, Rr Store Indirect (Y) ← Rr None 2
-    "ST", // Y+, Rr Store Indirect and Post-Inc. (Y) ← Rr, Y ← Y + 1 None 2
-    "ST", // - Y, Rr Store Indirect and Pre-Dec. Y ← Y - 1, (Y) ← Rr None 2
-    "STD", // Y+q,Rr Store Indirect with Displacement (Y + q) ← Rr None 2
-    "ST", // Z, Rr Store Indirect (Z) ← Rr None 2
-    "ST", // Z+, Rr Store Indirect and Post-Inc. (Z) ← Rr, Z ← Z + 1 None 2
-    "ST", // -Z, Rr Store Indirect and Pre-Dec. Z ← Z - 1, (Z) ← Rr None 2
     "STD", // Z+q,Rr Store Indirect with Displacement (Z + q) ← Rr None 2
     "STS", // k, Rr Store Direct to SRAM (k) ← Rr None 2
     "LPM", // Load Program Memory R0 ← (Z) None 3
-    "LPM", // Rd, Z Load Program Memory Rd ← (Z) None 3
-    "LPM", // Rd, Z+ Load Program Memory and Post-Inc Rd ← (Z), Z ← Z+1 None 3
     "SPM", // Store Program Memory (Z) ← R1:R0 None -
     "IN", // Rd, P In Port Rd ← P None 1
     "OUT", // P, Rr Out Port P ← Rr None 1
@@ -152,7 +140,128 @@ const char* INST[]={
     "BREAK",  // Break For On-Chip Debug Only None N/A
 };
 
-const char* IO_REG[]={
+namespace Operation{
+    enum Inst{
+        ADD,  // Rd, Rr Add two Registers Rd ← Rd +
+        ADC,  // Rd, Rr Add with Carry two Registers Rd ← Rd + Rr 
+        ADIW,  // Rdl,K Add Immediate to Word Rdh:Rdl ← Rdh:Rdl 
+        SUB,  // Rd, Rr Subtract two Registers Rd ← Rd -
+        SUBI,  // Rd, K Subtract Constant from Register Rd ← Rd 
+        SBC,  // Rd, Rr Subtract with Carry two Registers Rd ← Rd - Rr 
+        SBCI,  // Rd, K Subtract with Carry Constant from Reg. Rd ← Rd - K 
+        SBIW,  // Rdl,K Subtract Immediate from Word Rdh:Rdl ← Rdh:Rdl 
+        AND,  // Rd, Rr Logical AND Registers Rd ← 
+        ANDI,  // Rd, K Logical AND Register and Constant Rd ←
+        OR,  // Rd, Rr Logical OR Registers Rd ← 
+        ORI,  // Rd, K Logical OR Register and Constant Rd ←
+        EOR,  // Rd, Rr Exclusive OR Registers Rd ← 
+        COM,  // Rd One’s Complement Rd ← $FF
+        NEG,  // Rd Two’s Complement Rd ← $00 −
+        SBR,  // Rd,K Set Bit(s) in Register Rd ←
+        CBR,  // Rd,K Clear Bit(s) in Register Rd ← Rd • ($
+        INC,  // Rd Increment Rd ←
+        DEC,  // Rd Decrement Rd ←
+        TST,  // Rd Test for Zero or Minus Rd ← 
+        CLR,  // Rd Clear Register Rd ← 
+        SER,  // Rd Set Register 
+        MUL,  // Rd, Rr Multiply Unsigned R1:R0 
+        MULS,  // Rd, Rr Multiply Signed R1:R0 
+        MULSU,  // Rd, Rr Multiply Signed with Unsigned R1:R0 
+        FMUL,  // Rd, Rr Fractional Multiply Unsigned R1:R0 ← (Rd x
+        FMULS,  // Rd, Rr Fractional Multiply Signed R1:R0 ← (Rd x
+        FMULSU,  // Rd, Rr Fractional Multiply Signed with Unsigned R1:R0 ← (Rd x
+
+        RJMP,  // k Relative Jump PC ← PC
+        IJMP,  // Indirect Jump to (Z
+        JMP,  // k Direct Jum
+        RCALL,  // k Relative Subroutine Call PC ← PC
+        ICALL,  // Indirect Call to (Z
+        CALL,  // k Direct Subroutine Cal
+        RET,  // Subroutine Return PC
+        RETI,  // Interrupt Return
+        CPSE,  // Rd,Rr Compare, Skip if Equal if (Rd = Rr) PC ← PC + 2 or 3
+        CP,  // Rd,Rr Compare Rd − 
+        CPC,  // Rd,Rr Compare with Carry Rd − Rr −
+        CPI,  // Rd,K Compare Register with Immediate Rd −
+        SBRC,  // Rr, b Skip if Bit in Register Cleared if (Rr(b)=0) PC ← PC + 2 or 3
+        SBRS,  // Rr, b Skip if Bit in Register is Set if (Rr(b)=1) PC ← PC + 2 or 3
+        SBIC,  // P, b Skip if Bit in I/O Register Cleared if (P(b)=0) PC ← PC + 2 or 3
+        SBIS,  // P, b Skip if Bit in I/O Register is Set if (P(b)=1) PC ← PC + 2 or 3
+        BRBS,  // s, k Branch if Status Flag Set if (SREG(s) = 1) then PC←PC+k
+        BRBC,  // s, k Branch if Status Flag Cleared if (SREG(s) = 0) then PC←PC+k
+        BREQ,  // k Branch if Equal if (Z = 1) then PC ← PC + k
+        BRNE,  // k Branch if Not Equal if (Z = 0) then PC ← PC + k
+        BRCS,  // k Branch if Carry Set if (C = 1) then PC ← PC + k
+        BRCC,  // k Branch if Carry Cleared if (C = 0) then PC ← PC + k
+        BRSH,  // k Branch if Same or Higher if (C = 0) then PC ← PC + k
+        BRLO,  // k Branch if Lower if (C = 1) then PC ← PC + k
+        BRMI,  // k Branch if Minus if (N = 1) then PC ← PC + k
+        BRPL,  // k Branch if Plus if (N = 0) then PC ← PC + k
+        BRGE,  // k Branch if Greater or Equal, Signed if (N ⊕ V= 0) then PC ← PC + k
+        BRLT,  // k Branch if Less Than Zero, Signed if (N ⊕ V= 1) then PC ← PC + k
+        BRHS,  // k Branch if Half Carry Flag Set if (H = 1) then PC ← PC + k
+        BRHC,  // k Branch if Half Carry Flag Cleared if (H = 0) then PC ← PC + k
+        BRTS,  // k Branch if T Flag Set if (T = 1) then PC ← PC + k
+        BRTC,  // k Branch if T Flag Cleared if (T = 0) then PC ← PC + k
+        BRVS,  // k Branch if Overflow Flag is Set if (V = 1) then PC ← PC + k
+        BRVC,  // k Branch if Overflow Flag is Cleared if (V = 0) then PC ← PC + k
+        BRIE,  // k Branch if Interrupt Enabled if ( I = 1) then PC ← PC + k
+        BRID,  // k Branch if Interrupt Disabled if ( I = 0) then PC ← PC + k
+
+        MOV, // Rd, Rr Move Between Registers
+        MOVW, // Rd, Rr Copy Register Word Rd+1:Rd ←
+        LDI, // Rd, K Load Immediat
+        LD, // Rd, X Load Indirect 
+        LDD, // Rd,Y+q Load Indirect with Displacement Rd ←
+        LDS, // Rd, k Load Direct from SRAM 
+        ST, // X, Rr Store Indirect 
+        STD, // Y+q,Rr Store Indirect with Displacement (Y +
+        STS, // k, Rr Store Direct to SRAM 
+        LPM, // Load Program Memory 
+        SPM, // Store Program Memory (Z)
+        IN, // Rd, P In Por
+        OUT, // P, Rr Out Por
+        PUSH, // Rr Push Register on Stack St
+        POP, // Rd Pop Register from Stack Rd
+
+        SBI,  // P,b Set Bit in I/O Register I/O(
+        CBI,  // P,b Clear Bit in I/O Register I/O(
+        LSL,  // Rd Logical Shift Left Rd(n+1) ← Rd(n), Rd(0
+        LSR,  // Rd Logical Shift Right Rd(n) ← Rd(n+1), Rd(7
+        ROL,  // Rd Rotate Left Through Carry Rd(0)←C,Rd(n+1)← Rd(n),C←
+        ROR,  // Rd Rotate Right Through Carry Rd(7)←C,Rd(n)← Rd(n+1),C←
+        ASR,  // Rd Arithmetic Shift Right Rd(n) ← Rd(n+1), n
+        SWAP,  // Rd Swap Nibbles Rd(3..0)←Rd(7..4),Rd(7..4)←
+        BSET,  // s Flag Set SREG(s
+        BCLR,  // s Flag Clear SREG(s
+        BST,  // Rr, b Bit Store from Register to 
+        BLD,  // Rd, b Bit load from T to Register R
+        SEC,  // Set 
+        CLC,  // Clear 
+        SEN,  // Set Negative
+        CLN,  // Clear Negative
+        SEZ,  // Set Zero
+        CLZ,  // Clear Zero
+        SEI,  // Global Interrupt E
+        CLI,  // Global Interrupt Di
+        SES,  // Set Signed Test
+        CLS,  // Clear Signed Test
+        SEV,  // Set Twos Complement Over
+        CLV,  // Clear Twos Complement Ove
+        SET,  // Set T in
+        CLT,  // Clear T in
+        SEH,  // Set Half Carry Flag in
+        CLH,  // Clear Half Carry Flag in
+
+        NOP,  // No O
+        SLEEP,  // Sleep (see specific descr. for Sleep f
+        WDR,  // Watchdog Reset (see specific descr. for WD
+        BREAK,  // Break For On-Chip Debu
+    };
+} 
+
+
+static const char* IO_REG[]={
     "TWBR",
     "TWSR",
     "TWAR",
@@ -289,5 +398,9 @@ namespace Register{
         SPL,
         SPH,
         SREG
+    };
+
+    enum status_bit{
+        C, Z, N, V, S, H, T, I
     };
 }
