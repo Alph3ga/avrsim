@@ -18,21 +18,24 @@ bool CPU::set_data(uint8_t addr, uint8_t val){
     }
 
     this->data[addr]= val;
+
+    return true;
 }
 
 uint16_t CPU::wget_data(uint8_t addr){
     uint8_t high, low;
-    low= get_data(addr+WORD_SIZE);
+    low= get_data(addr+1);
     high= get_data(addr);
 
     uint16_t res= 0;
     res|= low;
-    res|= high<<WORD_SIZE;
+    res|= high<<8;
+
+    return res;
 }
 
 bool CPU::wset_data(uint8_t addr, uint16_t val){
-    set_data(addr+WORD_SIZE, (uint8_t)val);
-    set_data(addr, (uint8_t)(val>>WORD_SIZE));
+    return set_data(addr+1, (uint8_t)val) && set_data(addr, (uint8_t)(val>>8));
 }
 
 bool CPU::next_tick(int inc){
@@ -55,7 +58,13 @@ bool CPU::set_data_bit(uint8_t addr, uint8_t bit){
 
 bool CPU::clear_data_bit(uint8_t addr, uint8_t bit){
     uint8_t data= this->get_data(addr);
-    data&= 0<<bit;
+    data&= ~(1<<bit);
     this->set_data(addr, data);
     return true;
+}
+
+bool CPU::get_data_bit(uint8_t addr, uint8_t bit){
+    uint8_t data= this->get_data(addr);
+    data&= 1<<bit;
+    return data;
 }

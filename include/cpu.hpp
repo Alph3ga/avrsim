@@ -100,4 +100,26 @@ public:
     bool set_data_bit(uint8_t, uint8_t);
     bool clear_data_bit(uint8_t, uint8_t);
 
+    inline bool get_reg_bit(uint8_t addr, uint8_t bit){
+        return get_data_bit(addr+REG_OFFSET, bit);
+    }
+
+    inline bool get_ioreg_bit(uint8_t addr, uint8_t bit){
+        return get_data_bit(addr+IOREG_OFFSET, bit);
+    }
+
+    bool get_data_bit(uint8_t, uint8_t);
+
+    inline bool modify_reg_bit(uint8_t addr, uint8_t bit, bool val){
+        return modify_data_bit(addr+REG_OFFSET, bit, val);
+    }
+
+    inline bool modify_ioreg_bit(uint8_t addr, uint8_t bit, bool val){
+        return modify_data_bit(addr+IOREG_OFFSET, bit, val);
+    }
+
+    inline bool modify_data_bit(uint8_t addr, uint8_t bit, bool val){
+        return val? set_data_bit(addr, bit) : clear_data_bit(addr, bit);
+    }
+
 };
