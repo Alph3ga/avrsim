@@ -8,7 +8,7 @@
 
 #include <defs.hpp>
 #include <cpu.hpp>
-
+#include <delegate.hpp>
 
 inline std::string& ltrim(std::string& s, const char* t = " \t\n\r\f\v");
 
@@ -31,3 +31,5 @@ uint32_t find_in(std::string op, std::vector<std::pair<std::string, uint16_t>>& 
 uint32_t decode_operand(std::string op, std::vector<std::pair<std::string, uint16_t>>& jmps);
 
 std::vector<uint32_t> decode(std::string inst, std::vector<std::pair<std::string, uint16_t>>& jmps);
+
+int execute(std::vector<uint32_t> inst, CPU& cpu);

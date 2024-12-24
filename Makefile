@@ -3,7 +3,7 @@
 vpath %.hpp ./include
 vpath %.cpp ./src $(sort $(dir $(wildcard ./src/*/)))
 
-targ= cpu fde
+targ= cpu fde delegate arithmetic branch transfer
 
 obj= $(addsuffix .o, $(targ))
 

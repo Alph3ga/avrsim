@@ -97,7 +97,7 @@ uint32_t find_in(std::string op, std::vector<std::pair<std::string, uint16_t>>& 
 }
 
 uint32_t decode_operand(std::string op, std::vector<std::pair<std::string, uint16_t>>& jmps){  // 0000_0000 0000_0000 0000_0000 0000_0000
-    uint32_t res, pos= 0;
+    uint32_t res=0, pos= 0;
 
     if((pos=find_in(IO_REG, IO_REG+66, op))!= 66){  // remove hardcoded size later
         res|= (uint8_t)pos;
@@ -105,7 +105,7 @@ uint32_t decode_operand(std::string op, std::vector<std::pair<std::string, uint1
     }
 
     if((pos=find_in(op, jmps))!=-1) {  // 0000_1111 0000_0000 pppp_pppp pppp_pppp
-        res|= 0xb1111<< _3_BYTE;
+        res|= 0b1111<< _3_BYTE;
         res|= (uint16_t)pos;
         return res;
     }
@@ -178,6 +178,19 @@ std::vector<uint32_t> decode(std::string inst, std::vector<std::pair<std::string
     return decoded;
 }
 
-bool execute(std::vector<uint32_t> inst, CPU cpu){
+int execute(std::vector<uint32_t> inst, CPU& cpu){
+    const uint32_t op= inst[0];
 
+    int ticks;
+
+    if(op>= 107){
+        if(op==Operation::NOP || op==Operation::SLEEP){
+            ticks= 1;
+        }
+    }
+    else{
+        ticks= delegate(inst, cpu);
+    }
+
+    return (cpu.ticks+= ticks);
 }
