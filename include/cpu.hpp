@@ -8,7 +8,10 @@ public:
 
     uint8_t data[2048];
 
+    long long unsigned int ticks= 0;
+
     static constexpr uint8_t WORD_SIZE= 0xFF;
+    static constexpr double TICK_TIME= 1.25e-7;
 
     static constexpr uint16_t RAMEND= 0x85F;
     static constexpr uint16_t REG_OFFSET= 0x00;
@@ -17,7 +20,10 @@ public:
 
     CPU();
 
-    bool next_tick();
+    bool next_tick(int inc= 1);
+
+    inline unsigned int uptime_ms();
+    inline unsigned int uptime_us(); 
 
     // Register address space 0x00-0x1F
     inline uint8_t get_reg(uint8_t addr){
@@ -75,6 +81,23 @@ public:
 
     // Data address space 0x00-0x85F (Registers 0x00-0x1F, IO Registers 0x20-0x5F, SRAM 0x60-0x85F)
     uint16_t wget_data(uint8_t);
-    bool wset_data(uint8_t, uint16_t);
+    bool wset_data(uint8_t, uint16_t); 
+
+    inline bool set_reg_bit(uint8_t addr, uint8_t bit){
+        return set_data_bit(addr+REG_OFFSET, bit);
+    }
+    inline bool clear_reg_bit(uint8_t addr, uint8_t bit){
+        return clear_data_bit(addr+REG_OFFSET, bit);
+    }
+
+    inline bool set_ioreg_bit(uint8_t addr, uint8_t bit){
+        return set_data_bit(addr+IOREG_OFFSET, bit);
+    }
+    inline bool clear_ioreg_bit(uint8_t addr, uint8_t bit){
+        return clear_data_bit(addr+IOREG_OFFSET, bit);
+    }
+
+    bool set_data_bit(uint8_t, uint8_t);
+    bool clear_data_bit(uint8_t, uint8_t);
 
 };
