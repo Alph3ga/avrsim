@@ -6,7 +6,7 @@ public:
     uint16_t SP;
     uint16_t PC;
 
-    uint8_t data[2048];
+    uint8_t data[2143];
 
     long long unsigned int ticks= 0;
 
