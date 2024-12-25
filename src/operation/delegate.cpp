@@ -18,12 +18,20 @@ int delegate(instruction inst, CPU& cpu){
         return Branch::JMP(inst, cpu);
     case Operation::BRNE:
         return Branch::BRNE(inst, cpu);
+    case Operation::CALL:
+        return Branch::CALL(inst, cpu);
+    case Operation::RET:
+        return Branch::RET(inst, cpu);
 
     
     case Operation::MOV:
         return Transfer::MOV(inst, cpu);
     case Operation::LDI:
         return Transfer::LDI(inst, cpu);
+    case Operation::IN:
+        return Transfer::IN(inst, cpu);
+    case Operation::OUT:
+        return Transfer::OUT(inst, cpu);
     
     default:
         return -1;
