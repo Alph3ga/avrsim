@@ -1,9 +1,9 @@
 #pragma once
 #include <stdint.h>
+#include <defs.hpp>
 
 class CPU{
 public:
-    uint16_t SP;
     uint16_t PC;
 
     uint8_t data[2143];
@@ -24,6 +24,9 @@ public:
 
     inline unsigned int uptime_ms();
     inline unsigned int uptime_us(); 
+
+    uint16_t get_SP();
+    bool set_SP(uint16_t SP);
 
     // Register address space 0x00-0x1F
     inline uint8_t get_reg(uint8_t addr){
@@ -121,5 +124,4 @@ public:
     inline bool modify_data_bit(uint8_t addr, uint8_t bit, bool val){
         return val? set_data_bit(addr, bit) : clear_data_bit(addr, bit);
     }
-
 };

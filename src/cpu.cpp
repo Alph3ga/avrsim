@@ -68,3 +68,18 @@ bool CPU::get_data_bit(uint8_t addr, uint8_t bit){
     data&= 1<<bit;
     return data;
 }
+
+uint16_t CPU::get_SP(){
+    uint8_t SPL= this->get_ioreg(Register::SPL);
+    uint8_t SPH= this->get_ioreg(Register::SPH);
+    uint16_t SP= 0;
+    SP|= SPL;
+    SP|= SPH<<8;
+    return SP;
+}
+
+bool CPU::set_SP(uint16_t SP){
+    this->set_ioreg(Register::SPL, SP & 0xFF);
+    this->set_ioreg(Register::SPH, SP >> 8);
+    return true;
+}
