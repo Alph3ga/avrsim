@@ -100,6 +100,8 @@ uint32_t decode_operand(std::string op, std::vector<std::pair<std::string, uint1
     uint32_t res=0, pos= 0;
 
     if((pos=find_in(IO_REG, IO_REG+66, op))!= 66){  // remove hardcoded size later
+        if(pos>32) pos--;
+        if(pos>50) pos--;
         res|= (uint8_t)pos;
         return res;
     }
